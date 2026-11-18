@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Muster Roll — Character Cards of 1776</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EADFC6; --paper-deep:#DFCFA8; --paper-light:#F3EAD3;
+  --ink:#2A2015; --ink-soft:#5C4B33;
+  --scarlet:#9E2B22; --scarlet-deep:#761D16;
+  --navy:#24425F; --navy-deep:#16293C; --gold:#8A6B2F;
+  --sc:'IM Fell English SC',Georgia,serif;
+  --fell:'IM Fell English',Georgia,serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+body{
+  font-family:'EB Garamond',Georgia,serif;font-size:1.06rem;line-height:1.5;
+  background:var(--paper);color:var(--ink);min-height:100vh;
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(255,250,230,.5), transparent 55%),
+    radial-gradient(ellipse at 85% 100%, rgba(140,110,60,.16), transparent 50%),
+    repeating-linear-gradient(2deg, transparent 0 3px, rgba(120,95,55,.025) 3px 4px);
+  padding-bottom:120px;
+}
+::selection{background:var(--navy);color:var(--paper)}
+a{color:var(--scarlet-deep)}
+button,input,select,textarea{font:inherit;color:inherit}
+[hidden]{display:none!important}
+
+/* ---------- masthead ---------- */
+.masthead{text-align:center;padding:38px 16px 26px;border-bottom:3px double var(--ink-soft)}
+.eyebrow{font-family:var(--sc);letter-spacing:.3em;font-size:.8rem;text-decoration:none;color:var(--scarlet-deep)}
+.masthead h1{font-family:var(--fell);font-weight:400;font-size:clamp(2.6rem,8vw,4.6rem);line-height:1;margin:10px 0 8px;
+  text-shadow:2px 2px 0 rgba(255,252,240,.55),4px 5px 0 rgba(70,50,20,.14)}
+.masthead p{max-width:60ch;margin:0 auto;color:var(--ink-soft);font-style:italic}
+
+/* ---------- controls ---------- */
+.btn{
+  font-family:var(--sc);font-size:.82rem;letter-spacing:.16em;
+  padding:8px 14px 7px;border:1px solid var(--ink-soft);background:linear-gradient(170deg,#F2EAD4,#E6D9B8);
+  cursor:pointer;box-shadow:2px 3px 0 rgba(70,50,20,.16);white-space:nowrap;
+}
+.btn:hover{background:#F7F0DC}
+.btn:active{transform:translate(1px,2px);box-shadow:1px 1px 0 rgba(70,50,20,.16)}
+.btn.primary{background:var(--navy);color:var(--paper);border-color:var(--navy-deep)}
+.btn.primary:hover{background:var(--navy-deep)}
+.btn.danger{color:var(--scarlet-deep);border-color:var(--scarlet-deep)}
+.btn.on{background:var(--scarlet-deep);color:var(--paper);border-color:var(--scarlet-deep)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.face-btn:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+input[type=text],input[type=search],select,textarea{
+  background:rgba(255,252,240,.6);border:1px solid var(--ink-soft);padding:7px 10px;width:100%;border-radius:0;
+}
+textarea{resize:vertical;min-height:4.5em}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;max-width:1180px;margin:22px auto 0;padding:0 16px}
+.toolbar input[type=search]{flex:1 1 180px;width:auto}
+.toolbar select{width:auto}
+
+/* ---------- deck ---------- */
+.deck{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:30px 26px;max-width:1180px;margin:26px auto 0;padding:0 16px}
+.slot{display:flex;flex-direction:column;align-items:center;gap:12px}
+.face-btn{display:block;width:100%;max-width:300px;border:0;background:none;padding:0;cursor:pointer;perspective:900px}
+.tilt{
+  position:relative;display:block;border-radius:12px;overflow:hidden;
+  transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
+  transition:transform .18s ease-out,box-shadow .18s;
+  box-shadow:0 10px 24px rgba(70,50,20,.3),0 1px 0 rgba(255,255,255,.4) inset;
+}
+.tilt canvas{display:block;width:100%;height:auto;aspect-ratio:600/840}
+.tilt::after{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .2s;
+  background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,250,225,.5),transparent 55%);
+  mix-blend-mode:soft-light;
+}
+.tilt:hover{box-shadow:0 20px 40px rgba(70,50,20,.4)}
+.tilt:hover::after{opacity:1}
+.empty{grid-column:1/-1;text-align:center;font-style:italic;color:var(--ink-soft);padding:40px 0}
+
+/* ---------- card view ---------- */
+.cardview{display:grid;grid-template-columns:minmax(260px,380px) 1fr;gap:36px;max-width:1180px;margin:24px auto 0;padding:0 16px;align-items:start}
+.cardview aside{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px;perspective:1000px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--ink-soft);margin-bottom:18px}
+.tabs button{font-family:var(--sc);letter-spacing:.18em;font-size:.86rem;padding:8px 14px;border:1px solid transparent;border-bottom:0;background:none;cursor:pointer;color:var(--ink-soft)}
+.tabs button[aria-selected=true]{border-color:var(--ink-soft);background:var(--paper-light);color:var(--ink);margin-bottom:-1px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 16px}
+label.f{display:block;font-family:var(--sc);font-size:.76rem;letter-spacing:.16em;color:var(--ink-soft)}
+label.f>*{margin-top:3px;font-family:'EB Garamond',Georgia,serif;font-size:1.02rem;letter-spacing:0;color:var(--ink)}
+.wide{grid-column:1/-1}
+h3{font-family:var(--fell);font-weight:400;font-size:1.3rem;margin:22px 0 10px}
+.trait{display:grid;grid-template-columns:5.5em 1fr 1.6em;align-items:center;gap:10px;font-family:var(--sc);letter-spacing:.12em;font-size:.86rem}
+.trait input{accent-color:var(--navy);width:100%}
+.entry{position:relative;border-left:2px solid var(--gold);padding:2px 34px 12px 16px;margin-left:6px}
+.entry::before{content:"";position:absolute;left:-6px;top:8px;width:10px;height:10px;border-radius:50%;background:var(--paper);border:2px solid var(--gold)}
+.entry.scenario{border-left-color:var(--scarlet)}
+.entry.scenario::before{border-color:var(--scarlet);background:var(--scarlet)}
+.entry .when{font-family:var(--sc);font-size:.76rem;letter-spacing:.18em;color:var(--scarlet-deep)}
+.entry .what{font-family:var(--fell);font-size:1.12rem;line-height:1.2}
+.entry p{color:#3B2E1E;white-space:pre-wrap}
+.entry .x{position:absolute;right:0;top:0;border:0;background:none;cursor:pointer;color:var(--ink-soft);font-size:1.2rem;padding:2px 8px}
+.entry .x:hover{color:var(--scarlet-deep)}
+.addform{background:rgba(255,252,240,.4);border:1px dashed var(--ink-soft);padding:14px;margin-top:14px}
+.muted{color:var(--ink-soft);font-style:italic}
+
+/* ---------- table tray + dialog ---------- */
+.tray{
+  position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  padding:12px 16px;background:var(--navy-deep);color:var(--paper);box-shadow:0 -6px 20px rgba(0,0,0,.3);
+}
+.tray .lbl{font-family:var(--sc);letter-spacing:.2em;font-size:.82rem}
+.tray .chips{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+.chip{border:1px solid rgba(234,223,198,.5);padding:2px 10px;font-size:.95rem;background:none;color:inherit;cursor:pointer}
+.chip:hover{background:rgba(234,223,198,.15)}
+dialog{
+  margin:auto;width:min(720px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;
+  background:var(--paper-light);color:var(--ink);border:1.5px solid var(--ink-soft);outline:6px solid var(--paper-deep);
+  padding:22px 22px 18px;box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+dialog::backdrop{background:rgba(22,41,60,.55)}
+dialog h2{font-family:var(--fell);font-weight:400;font-size:1.8rem;margin-bottom:4px}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:8px 18px;z-index:50;font-family:var(--sc);letter-spacing:.12em;font-size:.85rem;max-width:90vw}
+
+@media (max-width:760px){
+  .cardview{grid-template-columns:1fr}
+  .cardview aside{position:static;max-width:340px;margin:0 auto;width:100%}
+  .deck{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:20px 14px}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="eyebrow" href="index.html">❧ 1776 · An Atlas of the American Revolution</a>
+  <h1>The Muster Roll</h1>
+  <p>Every character is a card, and every card carries its whole record — profile, history, ties, and everything that has befallen it at the table.</p>
+</header>
+
+<main id="app"></main>
+
+<div class="tray" id="tray" hidden></div>
+<dialog id="dlg"></dialog>
+<input type="file" id="importFile" accept=".png,.json,image/png,application/json" multiple hidden>
+<input type="file" id="portraitFile" accept="image/*" hidden>
+
+<script>
+"use strict";
+/* =====================================================================
+   THE CARD — one self-contained JSON document per character.
+   Everything about a character lives inside its card: profile, traits,
+   history (their life), ties (to other characters), and activity (all
+   that has been done with the card here, including scenario outcomes).
+   A card exports as a PNG of its own face with this JSON embedded in a
+   tEXt chunk, so the picture *is* the save file.
+   ===================================================================== */
+const FORMAT = 'atlas-card', VERSION = 1, STORE = 'atlas-cards-v1';
+const FACTIONS = {
+  patriot:  {name:'Patriot',        color:'#24425F', device:'star'},
+  british:  {name:'British',        color:'#9E2B22', device:'crown'},
+  french:   {name:'French',         color:'#7A5C1E', device:'fleur'},
+  nations:  {name:'Native Nations', color:'#3F5A3A', device:'tree'},
+  loyalist: {name:'Loyalist',       color:'#761D16', device:'crown'},
+  unaligned:{name:'Unaligned',      color:'#5C4B33', device:'ring'},
+};
+const TRAITS = ['arms','command','counsel','guile','resolve','renown'];
+const TRAIT_HELP = {arms:'personal prowess in a fight',command:'leading others in the field',counsel:'diplomacy and persuasion',guile:'deception and stratagem',resolve:'endurance under hardship',renown:'reputation and public standing'};
+
+/* ---------- seed deck (trait numbers are game ratings, not history) ---------- */
+const SEEDS = [
+ {name:'George Washington', monogram:'GW', epithet:'The Indispensable Man', faction:'patriot', role:'Commander-in-Chief, Continental Army',
+  born:'22 February 1732', died:'14 December 1799', origin:'Westmoreland County, Virginia', status:'In the field',
+  traits:{arms:6,command:10,counsel:7,guile:7,resolve:10,renown:10},
+  bio:'A Virginia planter and veteran of the French and Indian War who holds a ragged army together for eight years by force of character more than by victories.',
+  motives:['Keep the army in being — while it lives, the cause lives','Subordinate the sword to the Congress','Guard his honour and reputation'],
+  ties:[{name:'Marquis de Lafayette',kind:'Protégé',note:'Regards him almost as a son.'},{name:'Nathanael Greene',kind:'Trusted lieutenant',note:'His choice to take the Southern command.'},{name:'Benedict Arnold',kind:'Betrayed by',note:'Once his most aggressive field commander.'},{name:'Charles Cornwallis',kind:'Adversary',note:'Besieged him at Yorktown.'}],
+  history:[
+   {date:'3 July 1754',title:'Surrender at Fort Necessity',text:'As a young Virginia officer he is forced to capitulate to the French in the opening clash of the French and Indian War.'},
+   {date:'15 June 1775',title:'Appointed Commander-in-Chief',text:'The Continental Congress places him at the head of the new Continental Army.'},
+   {date:'25–26 December 1776',title:'Crossing the Delaware',text:'Leads the army across the ice-choked river by night and surprises the Hessian garrison at Trenton.'},
+   {date:'Winter 1777–78',title:'Valley Forge',text:'Holds the army together through a winter of hunger and disease; it emerges drilled and hardened.'},
+   {date:'19 October 1781',title:'Yorktown',text:'With French troops and the French fleet, compels the surrender of Cornwallis’s army.'},
+   {date:'23 December 1783',title:'Resigns his commission',text:'Returns his commission to Congress at Annapolis and goes home to Mount Vernon.'}]},
+ {name:'Benjamin Franklin', monogram:'BF', epithet:'The First American', faction:'patriot', role:'Printer, Philosopher, Minister to France',
+  born:'17 January 1706', died:'17 April 1790', origin:'Boston, Massachusetts', status:'At Passy, near Paris',
+  traits:{arms:1,command:4,counsel:10,guile:9,resolve:7,renown:10},
+  bio:'The most famous American alive: printer, experimenter, wit, and the diplomat who charms France into the war.',
+  motives:['Win and keep the French alliance','Persuade by wit rather than force','Advance useful knowledge'],
+  ties:[{name:'Marquis de Lafayette',kind:'Ally',note:'A living link between the two nations.'},{name:'George Washington',kind:'Colleague',note:'Mutual esteem at a distance.'}],
+  history:[
+   {date:'1752',title:'The kite and the key',text:'His experiments on electricity make him famous across Europe.'},
+   {date:'June–July 1776',title:'The Committee of Five',text:'Serves on the committee that drafts the Declaration of Independence, and signs it.'},
+   {date:'6 February 1778',title:'Treaty of Alliance',text:'After Saratoga, concludes the alliance with France that will decide the war.'},
+   {date:'3 September 1783',title:'Treaty of Paris',text:'With John Adams and John Jay, signs the peace that recognises American independence.'}]},
+ {name:'Abigail Adams', monogram:'AA', epithet:'“Portia”', faction:'patriot', role:'Correspondent and Counsellor',
+  born:'22 November 1744', died:'28 October 1818', origin:'Weymouth, Massachusetts', status:'Managing the farm at Braintree',
+  traits:{arms:1,command:5,counsel:8,guile:6,resolve:9,renown:5},
+  bio:'She runs the family farm through war, inflation and epidemic while her husband serves in Congress and abroad, and sends him some of the sharpest political letters of the age.',
+  motives:['Hold the household together through the war','Press the men in Congress toward their own principles','See her children educated'],
+  ties:[{name:'Benjamin Franklin',kind:'Acquaintance',note:'Her husband’s colleague in Congress and in Paris.'}],
+  history:[
+   {date:'17 June 1775',title:'Watching Bunker Hill',text:'Climbs Penn’s Hill with her young son John Quincy and watches Charlestown burn across the bay.'},
+   {date:'31 March 1776',title:'“Remember the Ladies”',text:'Writes to John in Philadelphia urging that the new code of laws not put unlimited power into the hands of husbands.'},
+   {date:'1784',title:'Sails for Europe',text:'Joins her husband abroad after years of separation.'}]},
+ {name:'Charles Cornwallis', monogram:'C', epithet:'The Earl in the Carolinas', faction:'british', role:'Lieutenant General, British Army',
+  born:'31 December 1738', died:'5 October 1805', origin:'London, England', status:'On campaign in the South',
+  traits:{arms:8,command:8,counsel:5,guile:5,resolve:7,renown:7},
+  bio:'An able, aggressive field commander who had opposed the taxes that provoked the rebellion, and who wins nearly every battle on his way to losing an army.',
+  motives:['Destroy the rebel armies in open battle','Do his duty to the Crown','Carry the war north into Virginia'],
+  ties:[{name:'Nathanael Greene',kind:'Adversary',note:'Chased him across North Carolina and was ruined by the pursuit.'},{name:'George Washington',kind:'Adversary',note:'Slipped away from him at Trenton; trapped him at Yorktown.'},{name:'Benedict Arnold',kind:'Uneasy colleague',note:'Inherited the turncoat’s force in Virginia.'}],
+  history:[
+   {date:'August 1776',title:'Long Island',text:'Commands the reserve in the flanking victory that drives Washington from Brooklyn.'},
+   {date:'2–3 January 1777',title:'Outfoxed at Princeton',text:'Believes he has Washington pinned at Trenton; by morning the Americans are behind him.'},
+   {date:'16 August 1780',title:'Camden',text:'Routs Horatio Gates and the American southern army.'},
+   {date:'15 March 1781',title:'Guilford Courthouse',text:'Holds the field against Greene but loses a quarter of his army doing it.'},
+   {date:'19 October 1781',title:'Surrender at Yorktown',text:'Besieged by land and sea, capitulates; pleading illness, he sends his second to deliver the sword.'}]},
+ {name:'Marquis de Lafayette', monogram:'L', epithet:'The Hero of Two Worlds', faction:'french', role:'Major General, Continental Army',
+  born:'6 September 1757', died:'20 May 1834', origin:'Chavaniac, Auvergne, France', status:'With the army',
+  traits:{arms:7,command:7,counsel:7,guile:5,resolve:8,renown:8},
+  bio:'A wealthy young French nobleman who crosses the Atlantic at nineteen to fight for liberty and becomes Washington’s devoted lieutenant.',
+  motives:['Win glory in the cause of liberty','Prove himself to Washington','Bind France and America together'],
+  ties:[{name:'George Washington',kind:'Mentor',note:'His “adoptive father.”'},{name:'Benjamin Franklin',kind:'Ally',note:'Works the French court alongside him.'},{name:'Charles Cornwallis',kind:'Adversary',note:'Shadowed him through Virginia in 1781.'}],
+  history:[
+   {date:'31 July 1777',title:'Commissioned Major General',text:'Congress grants the nineteen-year-old volunteer his rank.'},
+   {date:'11 September 1777',title:'Wounded at Brandywine',text:'Shot through the leg while rallying retreating troops.'},
+   {date:'Winter 1777–78',title:'Valley Forge',text:'Shares the winter encampment and stands by Washington against his critics.'},
+   {date:'1781',title:'The Virginia Campaign',text:'With a small force, shadows Cornwallis and helps pen him in at Yorktown.'}]},
+ {name:'Benedict Arnold', monogram:'BA', epithet:'Hero of Saratoga, Traitor of West Point', faction:'patriot', role:'Major General, Continental Army',
+  born:'14 January 1741', died:'14 June 1801', origin:'Norwich, Connecticut', status:'Aggrieved',
+  traits:{arms:10,command:8,counsel:2,guile:8,resolve:7,renown:6},
+  bio:'Perhaps the best battlefield commander on the American side — twice wounded, repeatedly passed over, deep in debt, and nursing every slight.',
+  motives:['Recognition equal to his deeds','Money enough to match his station','Never to be slighted again'],
+  ties:[{name:'George Washington',kind:'Patron',note:'Defended him to Congress, and was betrayed.'},{name:'Charles Cornwallis',kind:'Uneasy colleague',note:'After the treason, a British brigadier in Virginia.'}],
+  history:[
+   {date:'10 May 1775',title:'Fort Ticonderoga',text:'Seizes the fort alongside Ethan Allen and the Green Mountain Boys.'},
+   {date:'31 December 1775',title:'Assault on Quebec',text:'Leads a wilderness march to Canada; shot in the leg in the failed attack.'},
+   {date:'7 October 1777',title:'Bemis Heights, Saratoga',text:'Leads the decisive charge and is wounded again in the same leg.'},
+   {date:'September 1780',title:'The West Point plot',text:'His plan to hand the Hudson fortress to the British is exposed when Major André is captured; he flees to HMS Vulture.'}]},
+ {name:'Joseph Brant', monogram:'T', epithet:'Thayendanegea', faction:'nations', role:'Mohawk War Leader and Diplomat',
+  born:'March 1743', died:'24 November 1807', origin:'Ohio Country', status:'On the frontier',
+  traits:{arms:8,command:8,counsel:8,guile:7,resolve:8,renown:6},
+  bio:'A Mohawk leader educated among the English, at home in a London drawing room and on a forest warpath, who judges that the Crown is the lesser threat to Haudenosaunee land.',
+  motives:['Preserve Haudenosaunee land and sovereignty','Hold the Crown to its promises','Keep the Six Nations from being divided'],
+  ties:[{name:'George Washington',kind:'Adversary',note:'Ordered the 1779 campaign against the Iroquois towns.'}],
+  history:[
+   {date:'1775–76',title:'Voyage to London',text:'Presents Mohawk grievances to the Crown and is received at court.'},
+   {date:'6 August 1777',title:'Oriskany',text:'Fights in the bloody ambush of the Tryon County militia.'},
+   {date:'11 November 1778',title:'Cherry Valley',text:'Takes part in the frontier raid that hardens American resolve against the Iroquois.'},
+   {date:'1784',title:'The Grand River',text:'Leads his people to lands granted on the Grand River in Canada.'}]},
+ {name:'Nathanael Greene', monogram:'NG', epithet:'The Fighting Quaker', faction:'patriot', role:'Major General, Southern Department',
+  born:'7 August 1742', died:'19 June 1786', origin:'Warwick, Rhode Island', status:'In the Carolinas',
+  traits:{arms:6,command:9,counsel:6,guile:9,resolve:9,renown:6},
+  bio:'A self-taught Rhode Island ironmaster, read out of his Quaker meeting, who loses battles and wins campaigns. “We fight, get beat, rise, and fight again.”',
+  motives:['Wear the enemy down without risking the army','Keep the men fed and supplied','Justify Washington’s trust'],
+  ties:[{name:'George Washington',kind:'Commander',note:'His most trusted general.'},{name:'Charles Cornwallis',kind:'Adversary',note:'Led him a ruinous chase to the Dan.'}],
+  history:[
+   {date:'2 March 1778',title:'Quartermaster General',text:'Reluctantly takes on the army’s broken supply system at Valley Forge.'},
+   {date:'December 1780',title:'Takes the Southern command',text:'Inherits a beaten army at Charlotte and boldly divides it.'},
+   {date:'15 March 1781',title:'Guilford Courthouse',text:'Yields the field to Cornwallis after bleeding his army white.'}]},
+];
+
+/* ---------- small utilities ---------- */
+const $ = s => document.querySelector(s);
+const uid = p => p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+function h(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs||{})){
+    if (v==null || v===false || (k==='type' && tag==='textarea')) continue;
+    if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (k==='class') e.className = v;
+    else if (k in e && k!=='list') e[k] = v;
+    else e.setAttribute(k, v);
+  }
+  for (const k of kids.flat(Infinity)){ if (k==null || k===false) continue; e.append(k.nodeType ? k : String(k)); }
+  return e;
+}
+function hash(str){ let x=2166136261; for (let i=0;i<str.length;i++){ x^=str.charCodeAt(i); x=Math.imul(x,16777619);} return x>>>0; }
+function prng(a){ return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const slug = s => (s||'card').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'card';
+let toastTimer;
+function toast(msg){ document.querySelector('.toast')?.remove(); const t=h('div',{class:'toast',role:'status'},msg); document.body.append(t); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.remove(),2600); }
+function download(blob, name){ const a=h('a',{href:URL.createObjectURL(blob),download:name}); document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }
+
+/* ---------- card model ---------- */
+function normalize(c){
+  const card = {
+    format:FORMAT, version:VERSION, id:c.id||uid('c'),
+    name:c.name||'Unnamed', monogram:c.monogram||'', epithet:c.epithet||'', faction:FACTIONS[c.faction]?c.faction:'unaligned',
+    role:c.role||'', born:c.born||'', died:c.died||'', origin:c.origin||'', status:c.status||'',
+    bio:c.bio||'', motives:Array.isArray(c.motives)?c.motives:[], portrait:c.portrait||'',
+    traits:{}, ties:Array.isArray(c.ties)?c.ties:[], history:Array.isArray(c.history)?c.history:[],
+    activity:Array.isArray(c.activity)?c.activity:[], created:c.created||new Date().toISOString(),
+  };
+  for (const t of TRAITS) card.traits[t] = Math.min(10, Math.max(1, Math.round(+(c.traits||{})[t]) || 5));
+  return card;
+}
+function log(card, type, title, text, extra){
+  card.activity.push(Object.assign({id:uid('a'), at:new Date().toISOString(), type, title, text:text||''}, extra||{}));
+}
+function monogram(card){
+  if (card.monogram) return card.monogram.slice(0,3);
+  const w = card.name.trim().split(/\s+/).filter(x=>/^[A-Z]/.test(x));
+  return ((w[0]||'?')[0] + (w.length>1 ? w[w.length-1][0] : '')).toUpperCase();
+}
+
+/* ---------- storage ---------- */
+let deck = [];
+const table = new Set();
+function load(){
+  try { const raw = JSON.parse(localStorage.getItem(STORE)); if (Array.isArray(raw) && raw.length) return raw.map(normalize); } catch(e){}
+  return SEEDS.map((s,i)=>{ const c=normalize(Object.assign({id:'seed_'+slug(s.name)},s)); log(c,'created','Card struck','Entered on the muster roll.'); return c; });
+}
+function save(){ try { localStorage.setItem(STORE, JSON.stringify(deck)); } catch(e){ toast('Could not save to this browser — export your cards'); } }
+const byId = id => deck.find(c=>c.id===id);
+
+/* =====================================================================
+   CARD FACE — drawn on canvas so the on-screen card and the exported
+   PNG come from one renderer.
+   ===================================================================== */
+const INK='#2A2015', SOFT='#5C4B33', FELL='"IM Fell English",Georgia,serif', SC='"IM Fell English SC",Georgia,serif', GAR='"EB Garamond",Georgia,serif';
+const imgCache = new Map();
+function portraitImage(card, redraw){
+  if (!card.portrait) return null;
+  let im = imgCache.get(card.portrait);
+  if (!im){ im = new Image(); im.onload = redraw; im.src = card.portrait; imgCache.set(card.portrait, im); }
+  return im.complete && im.naturalWidth ? im : null;
+}
+function drawDevice(c, kind, x, y, s, color){
+  c.save(); c.translate(x,y); c.fillStyle=color; c.strokeStyle=color; c.beginPath();
+  if (kind==='star'){ for (let i=0;i<10;i++){ const r=i%2?s*.42:s, a=-Math.PI/2+i*Math.PI/5; c.lineTo(Math.cos(a)*r, Math.sin(a)*r);} c.fill(); }
+  else if (kind==='crown'){ [[-1,.7],[-1,-.35],[-.5,.1],[0,-.75],[.5,.1],[1,-.35],[1,.7]].forEach(p=>c.lineTo(p[0]*s,p[1]*s)); c.fill(); }
+  else if (kind==='fleur'){ c.ellipse(0,-s*.15,s*.26,s*.85,0,0,7); c.fill(); for (const d of [-1,1]){ c.beginPath(); c.ellipse(d*s*.5,-s*.05,s*.2,s*.6,d*.6,0,7); c.fill(); } c.fillRect(-s*.7,s*.35,s*1.4,s*.2); }
+  else if (kind==='tree'){ for (let i=0;i<3;i++){ const t=-s+i*s*.5, w=s*(.45+i*.25); c.moveTo(0,t); c.lineTo(w,t+s*.75); c.lineTo(-w,t+s*.75); } c.fill(); c.fillRect(-s*.1,s*.7,s*.2,s*.3); }
+  else { c.lineWidth=s*.22; c.arc(0,0,s*.75,0,7); c.stroke(); c.beginPath(); c.arc(0,0,s*.22,0,7); c.fill(); }
+  c.restore();
+}
+function drawCard(cv, card, scale){
+  scale = scale||1;
+  const W=600, H=840; cv.width=W*scale; cv.height=H*scale;
+  const c = cv.getContext('2d'); c.scale(scale,scale);
+  const f = FACTIONS[card.faction], rnd = prng(hash(card.id));
+  const txt = (s,x,y,font,color,align,ls,maxW)=>{
+    let size = parseFloat(font); c.textAlign=align||'center'; c.fillStyle=color;
+    if ('letterSpacing' in c) c.letterSpacing = (ls||0)+'px';
+    c.font = font;
+    while (maxW && c.measureText(s).width>maxW && size>10){ size-=1; c.font=font.replace(/[\d.]+px/, size+'px'); }
+    c.fillText(s,x,y);
+  };
+  // paper, foxing, vignette
+  let g=c.createLinearGradient(0,0,W,H); g.addColorStop(0,'#F4EBD5'); g.addColorStop(1,'#DFCFA6'); c.fillStyle=g; c.fillRect(0,0,W,H);
+  for (let i=0;i<160;i++){ c.fillStyle=`rgba(110,80,35,${rnd()*.08})`; c.beginPath(); c.arc(rnd()*W,rnd()*H,rnd()*2.4+.3,0,7); c.fill(); }
+  g=c.createRadialGradient(W/2,H/2,220,W/2,H/2,560); g.addColorStop(0,'rgba(110,80,35,0)'); g.addColorStop(1,'rgba(110,80,35,.3)'); c.fillStyle=g; c.fillRect(0,0,W,H);
+  // faction band
+  c.fillStyle=f.color; c.fillRect(24,24,W-48,54);
+  drawDevice(c,f.device,62,51,14,'#EADFC6');
+  txt(f.name.toUpperCase(),W/2,58,'19px '+SC,'#EADFC6','center',6);
+  txt('№ '+String(deck.indexOf(card)+1||deck.length+1).padStart(2,'0'),W-46,58,'18px '+SC,'#EADFC6','right',2);
+  // frame
+  c.strokeStyle=INK; c.lineWidth=3; c.strokeRect(15,15,W-30,H-30); c.lineWidth=1; c.strokeRect(24,24,W-48,H-48);
+  c.beginPath(); c.moveTo(24,78); c.lineTo(W-24,78); c.stroke();
+  // medallion
+  const mx=W/2, my=232, R=128;
+  c.save(); c.beginPath(); c.arc(mx,my,R,0,7); c.fillStyle='#EFE5CB'; c.fill(); c.clip();
+  const im = portraitImage(card, ()=>drawCard(cv,card,scale));
+  if (im){
+    const s=Math.max(2*R/im.naturalWidth,2*R/im.naturalHeight); c.drawImage(im,mx-im.naturalWidth*s/2,my-im.naturalHeight*s/2,im.naturalWidth*s,im.naturalHeight*s);
+    c.fillStyle='rgba(120,90,40,.16)'; c.fillRect(mx-R,my-R,2*R,2*R);
+  } else {
+    // engraved rosette, unique to the card: petals from its id, depth from its traits
+    const tr=card.traits, n=5+Math.floor(rnd()*9), m=3+Math.floor(rnd()*5), amp=.12+tr.renown*.022, layers=14+tr.command;
+    c.lineWidth=.8; c.strokeStyle=f.color;
+    for (let j=0;j<layers;j++){
+      const ph=j/layers*Math.PI*2/n, k=1-j/layers*.5; c.globalAlpha=.34+.3*(j%2); c.beginPath();
+      for (let a=0;a<=360;a+=1.5){ const t=a*Math.PI/180, r=R*k*(1-amp+amp*Math.cos(n*t+ph*n)+.05*Math.sin(m*t-ph*3)); c.lineTo(mx+Math.cos(t+ph)*r,my+Math.sin(t+ph)*r); }
+      c.closePath(); c.stroke();
+    }
+    c.globalAlpha=1; c.beginPath(); c.arc(mx,my,60,0,7); c.fillStyle='#F1E7CE'; c.fill(); c.lineWidth=1.2; c.stroke();
+    c.beginPath(); c.arc(mx,my,54,0,7); c.lineWidth=.6; c.stroke();
+    const mg=monogram(card); txt(mg,mx,my+(mg.length>2?17:22),(mg.length>2?46:62)+'px '+FELL,INK,'center',0,96);
+  }
+  c.restore();
+  c.strokeStyle=INK; c.lineWidth=3; c.beginPath(); c.arc(mx,my,R,0,7); c.stroke();
+  c.strokeStyle=f.color; c.lineWidth=2; c.beginPath(); c.arc(mx,my,R+7,0,7); c.stroke();
+  for (let i=0;i<4;i++){ const a=Math.PI/4+i*Math.PI/2; drawDevice(c,'star',mx+Math.cos(a)*(R+7),my+Math.sin(a)*(R+7),6,f.color); }
+  // titles
+  txt(card.name,W/2,424,'46px '+FELL,INK,'center',0,516);
+  if (card.epithet) txt(card.epithet,W/2,458,'italic 23px '+GAR,'#761D16','center',0,500);
+  const dates=[card.born,card.died].map(d=>(d.match(/\d{4}/)||[''])[0]); const life=dates[0]||dates[1]?`${dates[0]||'?'}–${dates[1]||''}`:'';
+  txt([card.role,life].filter(Boolean).join('  ·  '),W/2,490,'16px '+SC,SOFT,'center',1.5,510);
+  c.strokeStyle=SOFT; c.lineWidth=1; c.beginPath(); c.moveTo(120,512); c.lineTo(W-120,512); c.stroke();
+  c.save(); c.translate(W/2,512); c.rotate(Math.PI/4); c.fillStyle='#8A6B2F'; c.fillRect(-5,-5,10,10); c.restore();
+  // trait radar
+  const rx=W/2, ry=642, rr=84, pt=(i,k)=>{ const a=-Math.PI/2+i*Math.PI/3; return [rx+Math.cos(a)*rr*k, ry+Math.sin(a)*rr*k]; };
+  c.strokeStyle='rgba(92,75,51,.45)'; c.lineWidth=.8;
+  for (const k of [1/3,2/3,1]){ c.beginPath(); TRAITS.forEach((_,i)=>c.lineTo(...pt(i,k))); c.closePath(); c.stroke(); }
+  TRAITS.forEach((_,i)=>{ c.beginPath(); c.moveTo(rx,ry); c.lineTo(...pt(i,1)); c.stroke(); });
+  c.beginPath(); TRAITS.forEach((t,i)=>c.lineTo(...pt(i,card.traits[t]/10))); c.closePath();
+  c.globalAlpha=.3; c.fillStyle=f.color; c.fill(); c.globalAlpha=1; c.strokeStyle=f.color; c.lineWidth=2.2; c.stroke();
+  TRAITS.forEach((t,i)=>{ const [x,y]=pt(i,card.traits[t]/10); c.beginPath(); c.arc(x,y,3,0,7); c.fillStyle=f.color; c.fill(); });
+  TRAITS.forEach((t,i)=>{
+    const a=-Math.PI/2+i*Math.PI/3, cx=Math.cos(a), x=rx+cx*(rr+14), y=ry+Math.sin(a)*(rr+14)+(i===0?-4:i===3?16:6);
+    const al=Math.abs(cx)<.01?'center':cx>0?'left':'right', lab=t[0].toUpperCase()+t.slice(1);
+    txt(al==='right'?`${lab}  ${card.traits[t]}`:al==='left'?`${card.traits[t]}  ${lab}`:`${lab}  ${card.traits[t]}`,x,y,'17px '+SC,INK,al,1.5);
+  });
+  // footer
+  c.strokeStyle=SOFT; c.lineWidth=1; c.beginPath(); c.moveTo(44,768); c.lineTo(W-44,768); c.stroke();
+  const sc=card.activity.filter(a=>a.type==='scenario').length;
+  txt(card.status||card.origin||'',46,796,'italic 18px '+GAR,SOFT,'left',0,300);
+  txt(`${card.activity.length} in the record`+(sc?` · ${sc} scenario${sc>1?'s':''}`:''),W-46,796,'15px '+SC,SOFT,'right',1.5,230);
+  if ('letterSpacing' in c) c.letterSpacing='0px';
+}
+function face(card, big){
+  const cv = h('canvas',{role:'img','aria-label':`${card.name}, ${FACTIONS[card.faction].name} — ${card.role}`});
+  drawCard(cv, card, big?1.5:1);
+  const wrap = h('span',{class:'tilt'},cv);
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    wrap.addEventListener('pointermove',e=>{ const r=wrap.getBoundingClientRect(), x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
+      wrap.style.setProperty('--ry',((x-.5)*14).toFixed(1)+'deg'); wrap.style.setProperty('--rx',((.5-y)*12).toFixed(1)+'deg');
+      wrap.style.setProperty('--gx',(x*100).toFixed(0)+'%'); wrap.style.setProperty('--gy',(y*100).toFixed(0)+'%'); });
+    wrap.addEventListener('pointerleave',()=>{ wrap.style.setProperty('--rx','0deg'); wrap.style.setProperty('--ry','0deg'); });
+  }
+  wrap.redraw = ()=>drawCard(cv, card, big?1.5:1);
+  return wrap;
+}
+
+/* =====================================================================
+   PNG CARRIER — the exported image holds the card's JSON in a tEXt chunk
+   ===================================================================== */
+const CRC_T = (()=>{ const t=new Uint32Array(256); for (let n=0;n<256;n++){ let c=n; for (let k=0;k<8;k++) c = c&1 ? 0xEDB88320^(c>>>1) : c>>>1; t[n]=c>>>0; } return t; })();
+function crc32(u8){ let c=~0; for (let i=0;i<u8.length;i++) c = CRC_T[(c^u8[i])&255]^(c>>>8); return ~c>>>0; }
+function b64encode(str){ const u=new TextEncoder().encode(str); let s=''; for (let i=0;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(s); }
+function b64decode(b){ const s=atob(b), u=new Uint8Array(s.length); for (let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return new TextDecoder().decode(u); }
+function pngEmbed(png, text){
+  const body = new TextEncoder().encode('tEXt'+FORMAT+'\0'+text), chunk = new Uint8Array(body.length+8), dv = new DataView(chunk.buffer);
+  dv.setUint32(0, body.length-4); chunk.set(body,4); dv.setUint32(body.length+4, crc32(body));
+  const out = new Uint8Array(png.length+chunk.length), cut = png.length-12;   // IEND is the last 12 bytes
+  out.set(png.subarray(0,cut)); out.set(chunk,cut); out.set(png.subarray(cut),cut+chunk.length); return out;
+}
+function pngExtract(png){
+  const dv = new DataView(png.buffer, png.byteOffset, png.byteLength), key = 'tEXt'+FORMAT+'\0';
+  for (let p=8; p+12<=png.length; ){
+    const len = dv.getUint32(p), head = String.fromCharCode.apply(null, png.subarray(p+4, p+4+key.length));
+    if (head===key){ let s=''; const d=png.subarray(p+4+key.length, p+8+len); for (let i=0;i<d.length;i+=0x8000) s+=String.fromCharCode.apply(null,d.subarray(i,i+0x8000)); return s; }
+    p += 12+len;
+  }
+  return null;
+}
+async function exportPNG(card){
+  log(card,'export','Card exported','Struck as a PNG with the full record embedded.'); save();
+  const cv = document.createElement('canvas'); drawCard(cv, card, 1.5);
+  const blob = await new Promise(r=>cv.toBlob(r,'image/png'));
+  const out = pngEmbed(new Uint8Array(await blob.arrayBuffer()), b64encode(JSON.stringify(card)));
+  download(new Blob([out],{type:'image/png'}), slug(card.name)+'.card.png');
+  toast('Exported — the image carries the whole card'); render();
+}
+function exportJSON(card){
+  log(card,'export','Card exported','Written out as JSON.'); save();
+  download(new Blob([JSON.stringify(card,null,2)],{type:'application/json'}), slug(card.name)+'.card.json'); render();
+}
+async function importFiles(files){
+  let n=0;
+  for (const file of files){
+    try {
+      const buf = new Uint8Array(await file.arrayBuffer());
+      const isPng = buf[0]===0x89 && buf[1]===0x50;
+      const text = isPng ? pngExtract(buf) : new TextDecoder().decode(buf);
+      if (text==null) throw new Error('no card inside this image');
+      const raw = JSON.parse(isPng ? b64decode(text) : text);
+      if (raw.format!==FORMAT) throw new Error('not a card file');
+      const card = normalize(raw), at = deck.findIndex(c=>c.id===card.id);
+      if (at>=0 && !confirm(`“${deck[at].name}” is already on the roll. Replace it with the imported card?\n\nCancel keeps both.`)) card.id = uid('c');
+      log(card,'import','Card imported','Read from '+file.name);
+      const i = deck.findIndex(c=>c.id===card.id); if (i>=0) deck[i]=card; else deck.push(card);
+      n++;
+    } catch(e){ toast(`${file.name}: ${e.message}`); }
+  }
+  if (n){ save(); render(); toast(`${n} card${n>1?'s':''} imported`); }
+}
+
+/* =====================================================================
+   VIEWS
+   ===================================================================== */
+const app = $('#app');
+let filter = {q:'', faction:''}, tab = 'profile';
+const route = () => { const m = location.hash.match(/^#\/card\/(.+)$/); return m ? byId(decodeURIComponent(m[1])) : null; };
+function render(){ const card = route(); app.replaceChildren(card ? cardView(card) : deckView()); renderTray(); }
+
+function deckView(){
+  const grid = h('div',{class:'deck'});
+  const fill = ()=>{
+    const q = filter.q.toLowerCase();
+    const list = deck.filter(c=>(!filter.faction||c.faction===filter.faction) && (!q || [c.name,c.epithet,c.role,c.origin,c.bio].join(' ').toLowerCase().includes(q)));
+    grid.replaceChildren(...(list.length ? list.map(c=>h('div',{class:'slot'},
+      h('button',{class:'face-btn','aria-label':'Open '+c.name,onclick:()=>{ location.hash='#/card/'+encodeURIComponent(c.id); }}, face(c)),
+      h('button',{class:'btn'+(table.has(c.id)?' on':''),'aria-pressed':String(table.has(c.id)),onclick:e=>{ table.has(c.id)?table.delete(c.id):table.add(c.id); e.currentTarget.classList.toggle('on',table.has(c.id)); e.currentTarget.setAttribute('aria-pressed',table.has(c.id)); e.currentTarget.textContent=table.has(c.id)?'At the table':'Call to the table'; renderTray(); }}, table.has(c.id)?'At the table':'Call to the table')
+    )) : [h('p',{class:'empty'},'No cards match.')]));
+  };
+  fill();
+  return h('div',{},
+    h('div',{class:'toolbar'},
+      h('input',{type:'search',placeholder:'Search the roll…','aria-label':'Search cards',value:filter.q,oninput:e=>{filter.q=e.target.value;fill();}}),
+      h('select',{'aria-label':'Filter by faction',onchange:e=>{filter.faction=e.target.value;fill();}},
+        h('option',{value:''},'All factions'), Object.entries(FACTIONS).map(([k,f])=>h('option',{value:k,selected:filter.faction===k},f.name))),
+      h('button',{class:'btn primary',onclick:newCard},'New card'),
+      h('button',{class:'btn',onclick:()=>$('#importFile').click()},'Import card')),
+    grid);
+}
+function newCard(){
+  const c = normalize({name:'New Character'}); log(c,'created','Card struck','Entered on the muster roll.');
+  deck.push(c); save(); tab='profile'; location.hash='#/card/'+c.id;
+}
+
+function cardView(card){
+  const big = face(card, true);
+  const touch = (field)=>{   // record edits, coalescing bursts into one entry
+    const last = card.activity[card.activity.length-1];
+    if (last && last.type==='edit' && Date.now()-new Date(last.at)<10*60e3){ const set=new Set(last.fields||[]); set.add(field); last.fields=[...set]; last.text='Changed: '+last.fields.join(', '); last.at=new Date().toISOString(); }
+    else log(card,'edit','Profile amended','Changed: '+field,{fields:[field]});
+    save(); big.redraw();
+  };
+  const input = (label,key,opts)=>h('label',{class:'f'+(opts&&opts.wide?' wide':'')},label,
+    h(opts&&opts.area?'textarea':'input',{type:'text',value:card[key],rows:opts&&opts.area||null,placeholder:opts&&opts.ph||'',onchange:e=>{ card[key]=e.target.value.trim(); touch(label.toLowerCase()); }}));
+
+  const panels = {
+    profile: ()=>h('div',{},
+      h('div',{class:'grid2'},
+        input('Name','name'), input('Epithet','epithet'),
+        h('label',{class:'f'},'Faction',h('select',{onchange:e=>{card.faction=e.target.value;touch('faction');}},Object.entries(FACTIONS).map(([k,f])=>h('option',{value:k,selected:card.faction===k},f.name)))),
+        input('Role','role'), input('Born','born',{ph:'e.g. 22 February 1732'}), input('Died','died'),
+        input('Origin','origin'), input('Present state','status',{ph:'where they stand right now'}),
+        input('Monogram','monogram',{ph:'auto from name'}),
+        input('Biography','bio',{area:4,wide:true}),
+        h('label',{class:'f wide'},'Motives — one per line',h('textarea',{rows:3,value:card.motives.join('\n'),onchange:e=>{card.motives=e.target.value.split('\n').map(s=>s.trim()).filter(Boolean);touch('motives');}}))),
+      h('h3',{},'Traits'),
+      h('div',{class:'grid2'},TRAITS.map(t=>{ const out=h('b',{},card.traits[t]); return h('label',{class:'trait',title:TRAIT_HELP[t]},t,
+        h('input',{type:'range',min:1,max:10,value:card.traits[t],'aria-label':`${t}: ${TRAIT_HELP[t]}`,oninput:e=>{card.traits[t]=+e.target.value;out.textContent=e.target.value;big.redraw();},onchange:()=>touch(t)}),out); })),
+      h('h3',{},'Portrait'),
+      h('p',{class:'muted'},card.portrait?'A portrait is set in the medallion and travels inside the card.':'No portrait — the medallion shows an engraved rosette generated from this card’s identity and traits.'),
+      h('div',{class:'actions',style:'margin-top:8px'},
+        h('button',{class:'btn',onclick:()=>{ const f=$('#portraitFile'); f.onchange=()=>{ if(f.files[0]) setPortrait(card,f.files[0]); f.value=''; }; f.click(); }},card.portrait?'Replace portrait':'Add portrait'),
+        card.portrait && h('button',{class:'btn',onclick:()=>{card.portrait='';touch('portrait');render();}},'Remove portrait'))),
+
+    history: ()=>listPanel(card,'history','Their life before and beyond the table.',
+      e=>[h('div',{class:'when'},e.date),h('div',{class:'what'},e.title),e.text&&h('p',{},e.text)],
+      [['date','Date','e.g. 19 October 1781'],['title','Event'],['text','What happened',null,true]], 'Add to history', touch),
+
+    ties: ()=>listPanel(card,'ties','Bonds, rivalries and debts to other characters.',
+      e=>{ const other=deck.find(c=>c.name===e.name&&c.id!==card.id); return [h('div',{class:'when'},e.kind),h('div',{class:'what'},other?h('a',{href:'#/card/'+encodeURIComponent(other.id)},e.name):e.name),e.note&&h('p',{},e.note)]; },
+      [['name','Who',null,false,'names'],['kind','Nature of the tie','e.g. Rival, Mentor'],['note','Note',null,true]], 'Add a tie', touch),
+
+    record: ()=>{
+      const note = h('textarea',{rows:2,placeholder:'Add a note to the record…','aria-label':'Note'});
+      return h('div',{},
+        h('p',{class:'muted',style:'margin-bottom:14px'},'Everything done with this card, newest first. Scenario outcomes land here.'),
+        [...card.activity].reverse().map(a=>h('div',{class:'entry '+a.type},
+          h('div',{class:'when'},new Date(a.at).toLocaleString([], {dateStyle:'medium',timeStyle:'short'})+' · '+a.type),
+          h('div',{class:'what'},a.title),
+          a.type==='scenario' ? [
+            h('p',{class:'muted'},[a.when,a.place].filter(Boolean).join(' · ')+(a.with&&a.with.length?`${a.when||a.place?' — ':''}with ${a.with.join(', ')}`:'')),
+            a.text&&h('p',{},h('b',{},'Premise. '),a.text), a.outcome&&h('p',{},h('b',{},'Outcome. '),a.outcome), a.note&&h('p',{},h('b',{},'For '+card.name+'. '),a.note)]
+          : a.text&&h('p',{},a.text))),
+        h('div',{class:'addform'},note,h('div',{class:'actions',style:'margin-top:8px'},h('button',{class:'btn',onclick:()=>{ if(!note.value.trim())return; log(card,'note','Note',note.value.trim()); save(); big.redraw(); render(); }},'Add note'))));
+    },
+  };
+  const body = h('div',{role:'tabpanel'}, panels[tab]());
+  const names = {profile:'Profile',history:'History',ties:'Ties',record:`Record (${card.activity.length})`};
+  return h('div',{},
+    h('div',{class:'toolbar'},h('a',{class:'btn',href:'#/',style:'text-decoration:none;color:inherit'},'← The roll')),
+    h('div',{class:'cardview'},
+      h('aside',{}, big,
+        h('div',{class:'actions'},
+          h('button',{class:'btn primary',onclick:()=>exportPNG(card)},'Export card (PNG)'),
+          h('button',{class:'btn',onclick:()=>exportJSON(card)},'JSON'),
+          h('button',{class:'btn'+(table.has(card.id)?' on':''),onclick:()=>{ table.has(card.id)?table.delete(card.id):table.add(card.id); render(); }},table.has(card.id)?'At the table':'Call to the table'),
+          h('button',{class:'btn danger',onclick:()=>{ if(confirm(`Strike ${card.name} from the roll? Export first if you want to keep the card.`)){ deck=deck.filter(c=>c!==card); table.delete(card.id); save(); location.hash='#/'; } }},'Delete'))),
+      h('section',{},
+        h('div',{class:'tabs',role:'tablist'},Object.keys(panels).map(k=>h('button',{role:'tab','aria-selected':String(tab===k),onclick:()=>{tab=k;render();}},names[k]))),
+        body)));
+}
+function listPanel(card, key, blurb, show, fields, addLabel, touch){
+  const inputs = {};
+  return h('div',{},
+    h('p',{class:'muted',style:'margin-bottom:14px'},blurb),
+    card[key].length ? card[key].map((e,i)=>h('div',{class:'entry'},show(e),
+      h('button',{class:'x','aria-label':'Remove entry',title:'Remove',onclick:()=>{ card[key].splice(i,1); touch(key); render(); }},'×'))) : h('p',{class:'muted'},'Nothing yet.'),
+    h('div',{class:'addform'},
+      h('datalist',{id:'names'},deck.filter(c=>c!==card).map(c=>h('option',{value:c.name}))),
+      h('div',{class:'grid2'},fields.map(([k,label,ph,area,list])=>h('label',{class:'f'+(area?' wide':'')},label,inputs[k]=h(area?'textarea':'input',{type:'text',rows:area?2:null,placeholder:ph||'',list:list||null})))),
+      h('div',{class:'actions',style:'margin-top:10px'},h('button',{class:'btn',onclick:()=>{
+        const e={}; for (const k in inputs) e[k]=inputs[k].value.trim();
+        if (!e[fields[0][0]] && !e[fields[1][0]]) return;
+        card[key].push(e); touch(key); render(); }},addLabel))));
+}
+function setPortrait(card, file){
+  const im = new Image(), url = URL.createObjectURL(file);
+  im.onload = ()=>{
+    const S=360, cv=h('canvas',{width:S,height:S}), s=Math.max(S/im.naturalWidth,S/im.naturalHeight);
+    cv.getContext('2d').drawImage(im,(S-im.naturalWidth*s)/2,(S-im.naturalHeight*s)/2,im.naturalWidth*s,im.naturalHeight*s);
+    card.portrait = cv.toDataURL('image/jpeg',.85); URL.revokeObjectURL(url);
+    log(card,'edit','Portrait set','A new likeness was placed in the medallion.'); save(); render();
+  };
+  im.onerror = ()=>toast('That file is not an image this browser can read');
+  im.src = url;
+}
+
+/* =====================================================================
+   THE TABLE — call several cards together, run a scenario, and write the
+   outcome back into every participant's own record.
+   ===================================================================== */
+function renderTray(){
+  const tray = $('#tray'), cards = [...table].map(byId).filter(Boolean);
+  tray.hidden = !cards.length;
+  tray.replaceChildren(
+    h('span',{class:'lbl'},'At the table'),
+    h('span',{class:'chips'},cards.map(c=>h('button',{class:'chip',title:'Dismiss from the table',onclick:()=>{table.delete(c.id);render();}},c.name+' ×'))),
+    h('button',{class:'btn',disabled:cards.length<2,title:cards.length<2?'Call at least two cards':'',onclick:()=>convene(cards)},'Convene a scenario'));
+}
+function brief(cards, s){
+  const slim = c=>({name:c.name,epithet:c.epithet,faction:FACTIONS[c.faction].name,role:c.role,origin:c.origin,present_state:c.status,traits:c.traits,bio:c.bio,motives:c.motives,
+    ties:c.ties, history:c.history, prior_scenarios:c.activity.filter(a=>a.type==='scenario').slice(-8).map(a=>({title:a.title,outcome:a.outcome,meaning:a.note}))});
+  return `You are the referee of a scenario set in the American Revolution. Play it out with the characters below, each acting strictly from their own card: traits (1–10), motives, ties, history, and what earlier scenarios did to them.
+
+SCENARIO: ${s.title||'(untitled)'}
+WHEN / WHERE: ${[s.when,s.place].filter(Boolean).join(' — ')||'(unspecified)'}
+PREMISE: ${s.premise||'(none given)'}
+
+Write (1) OUTCOME: a short narrative of what happens, and (2) for each character, one or two sentences on what it meant for them — changes to standing, state, or ties.
+
+CARDS:
+${JSON.stringify(cards.map(slim),null,1)}`;
+}
+function convene(cards){
+  const dlg = $('#dlg'), f = {}, notes = {};
+  const fld = (k,label,area,ph)=>h('label',{class:'f'+(area?' wide':'')},label,f[k]=h(area?'textarea':'input',{type:'text',rows:area||null,placeholder:ph||''}));
+  const val = ()=>Object.fromEntries(Object.entries(f).map(([k,e])=>[k,e.value.trim()]));
+  const out = h('textarea',{rows:6,readOnly:true,hidden:true,'aria-label':'Scenario brief'});
+  dlg.replaceChildren(
+    h('h2',{},'Convene a scenario'),
+    h('p',{class:'muted',style:'margin-bottom:14px'},cards.map(c=>c.name).join(' · ')),
+    h('div',{class:'grid2'},
+      fld('title','Scenario',0,'e.g. A parley at the Dan River'), fld('when','When',0,'e.g. February 1781'), fld('place','Where'),
+      fld('premise','Premise',3,'What brings these characters together, and what is at stake?'),
+      fld('outcome','Outcome',3,'What happened. Write it yourself, or draft a brief and have it played out.')),
+    h('h3',{},'What it meant for each'),
+    h('div',{class:'grid2'},cards.map(c=>h('label',{class:'f wide'},c.name,notes[c.id]=h('input',{type:'text'})))),
+    out,
+    h('div',{class:'actions',style:'margin-top:16px'},
+      h('button',{class:'btn primary',onclick:()=>{
+        const s = val(); if (!s.title){ f.title.focus(); toast('Give the scenario a name'); return; }
+        const sid = uid('s');
+        for (const c of cards) log(c,'scenario',s.title,s.premise,{scenarioId:sid,when:s.when,place:s.place,outcome:s.outcome,note:notes[c.id].value.trim(),with:cards.filter(o=>o!==c).map(o=>o.name)});
+        save(); dlg.close(); table.clear(); render(); toast(`Entered in ${cards.length} records`);
+      }},'Enter in every record'),
+      h('button',{class:'btn',onclick:async()=>{
+        out.value = brief(cards,val()); out.hidden=false;
+        try { await navigator.clipboard.writeText(out.value); toast('Brief copied'); } catch(e){ out.select(); toast('Brief drafted — copy it from the box'); }
+      }},'Draft brief'),
+      h('button',{class:'btn',onclick:()=>dlg.close()},'Cancel')));
+  dlg.showModal();
+}
+
+/* ---------- boot ---------- */
+$('#importFile').addEventListener('change',e=>{ importFiles([...e.target.files]); e.target.value=''; });
+addEventListener('hashchange',()=>{ if(!route()) tab='profile'; render(); scrollTo(0,0); });
+deck = load(); save(); render();
+// redraw once the engraving faces arrive, so canvases don't keep the fallback font
+if (document.fonts && document.fonts.load) Promise.all(['46px "IM Fell English"','19px "IM Fell English SC"','italic 23px "EB Garamond"'].map(f=>document.fonts.load(f))).then(render,()=>{});
+</script>
+</body>
+</html>
